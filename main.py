@@ -1,3 +1,5 @@
+# used for stepping through directories and getting files and setting each dataset to a pandas dataframe
+# not finished
 import matplotlib as plt
 import os
 import pandas as pd
@@ -27,8 +29,3 @@ for path in pathlib.Path(directory).iterdir():
             dataset_path = os.path.join(directory, file)
             file_dict[f'df{count}'] = pd.read_csv(dataset_path)
             count -= 1
-
-
-print(file_dict[0])
-
-
