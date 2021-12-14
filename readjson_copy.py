@@ -1,3 +1,5 @@
+# read in a json file to create a table
+
 import json
 
 with open('file.json') as f:
