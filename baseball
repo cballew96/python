@@ -1,0 +1,84 @@
+# each table needs the same amount of players in it for foreign key error not to occur
+
+import mysql.connector as msql
+from mysql.connector import Error
+import pandas as pd
+
+#df_players = pd.read_csv(r'C:\MLB_Stats\')
+df_lefties = pd.read_csv(r'C:\MLB_Stats\2021_batting_stats_vs_lefties.csv')
+df_righties = pd.read_csv(r'C:\MLB_Stats\2021_batting_stats_vs_righties.csv')
+df_players = df_lefties[['Season', 'Name', 'Tm', 'playerId']]
+df_lefties = df_lefties.drop(['Season', 'Name', 'Tm'], axis = 1)
+df_righties = df_righties.drop(['Season', 'Name', 'Tm'], axis = 1)
+
+'''
+print(df_players.head(5))
+print(df_lefties.head(5))
+print(df_righties.head(5))
+'''
+
+# in vslefties and vsrights df the col SEASON, NAME, AND TM need to be removed before the rest of the code works
+
+
+# creating the database tables and filling the tables with data from the pandas dataframes
+def create_db_tables():
+    try:
+        conn = msql.connect(host='',
+                            database='',
+                            user='',
+                            password='')
+        if conn.is_connected():
+            cursor = conn.cursor()
+            cursor.execute("select database();")
+            record = cursor.fetchone()
+            print("You're connected to the database!")
+            cursor.execute('DROP TABLE IF EXISTS vslefties')
+            cursor.execute('DROP TABLE IF EXISTS vsrighties')
+            cursor.execute('DROP TABLE IF EXISTS players')
+
+            print("Creating Table...")
+            cursor.execute("CREATE TABLE players(season INT, name CHAR(255),team CHAR(3),playerid INT NOT NULL,"
+                           "PRIMARY KEY (playerid))")
+            print("Table players is created...")
+            print("Creating Table...")
+
+            cursor.execute("CREATE TABLE vslefties(pa INT,bbpercentage DOUBLE,kpercentage DOUBLE,"
+                           "walksstrikeoutpercentage DOUBLE,avg DOUBLE,obp DOUBLE,slg DOUBLE,ops DOUBLE,iso DOUBLE,"
+                           "babip DOUBLE,wrc DOUBLE,wraa DOUBLE,woba DOUBLE,wrcplus DOUBLE,"
+                           "playerid INT NOT NULL,"
+                           "PRIMARY KEY (playerid),"
+                           "FOREIGN KEY (playerid) REFERENCES players(playerid))")
+            print("Table vslefties is created...")
+            print("Creating Table")
+            cursor.execute("CREATE TABLE vsrighties(pa INT,bbpercentage DOUBLE,kpercentage DOUBLE,"
+                           "walksstrikoutpercentage DOUBLE,avg DOUBLE, obp DOUBLE, slg DOUBLE, ops DOUBLE, iso DOUBLE,"
+                           "babip DOUBLE, wrc DOUBLE , wraa DOUBLE, woba DOUBLE, wrcplus DOUBLE, playerid INT NOT NULL,"
+                           "PRIMARY KEY (playerid),"
+                           "FOREIGN KEY (playerid) REFERENCES players(playerid))")
+            print("Table vsrighties is created...")
+            
+            for i, row in df_players.iterrows():
+                sql = "INSERT INTO baseball.players VALUES (%s,%s,%s,%s)"
+                cursor.execute(sql, tuple(row))
+                print("Record inserted")
+            for i, row in df_lefties.iterrows():
+                sql = "INSERT INTO baseball.vslefties VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                cursor.execute(sql, tuple(row))
+                print("Record inserted")
+            for i, row in df_righties.iterrows():
+                sql = "INSERT INTO baseball.vsrighties VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                cursor.execute(sql, tuple(row))
+                print("Record inserted")
+            
+                conn.commit()
+
+    except Error as e:
+                print("Error: ", e)
+
+# only needed to create tables
+#create_db_tables()
+
+
+#print(df_lefties.head(5))
+for i, row in df_lefties.iterrows():
+   print(row)
